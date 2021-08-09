@@ -56,7 +56,7 @@ func handler(request events.APIGatewayProxyRequest) (*events.APIGatewayProxyResp
 		return &fail, nil
 	}
 
-	videoId := videoIdRegex.FindStringSubmatch(string(body))[1]
+	videoId := matches[1]
 	videoPath := fmt.Sprintf("https://www.youtube.com/live_chat?is_popout=1&v=%s", videoId)
 
 	return &events.APIGatewayProxyResponse{
