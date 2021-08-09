@@ -1,12 +1,14 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"regexp"
 
-	"github.com/gin-gonic/gin"
+	"github.com/aws/aws-lambda-go/events"
+	"github.com/aws/aws-lambda-go/lambda"
 )
 
 type failure struct {
@@ -15,29 +17,56 @@ type failure struct {
 
 var videoIdRegex = regexp.MustCompile(`https?:\/\/www\.youtube\.com\/watch\?v=(?P<videoId>[^#\&\?%"<>]*)`)
 
+func jsonFailure(message string) events.APIGatewayProxyResponse {
+	res := failure{Error: message}
+	body, _ := json.Marshal(res)
+	return events.APIGatewayProxyResponse{
+		StatusCode: 400,
+		Headers: map[string]string{
+			"Content-Type": "application/json",
+		},
+		Body: string(body),
+	}
+}
+
+func handler(request events.APIGatewayProxyRequest) (*events.APIGatewayProxyResponse, error) {
+	channelId, ok := request.PathParameters["channelId"]
+	if !ok {
+		fail := jsonFailure("Failed to get channel ID from request")
+		return &fail, nil
+	}
+
+	livePath := fmt.Sprintf("https://www.youtube.com/channel/%s/live", channelId)
+
+	res, err := http.Get(livePath)
+	if err != nil {
+		fail := jsonFailure(err.Error())
+		return &fail, nil
+	}
+
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		fail := jsonFailure(err.Error())
+		return &fail, nil
+	}
+
+	matches := videoIdRegex.FindStringSubmatch(string(body))
+	if len(matches) == 0 {
+		fail := jsonFailure("No live stream found")
+		return &fail, nil
+	}
+
+	videoId := videoIdRegex.FindStringSubmatch(string(body))[1]
+	videoPath := fmt.Sprintf("https://www.youtube.com/live_chat?is_popout=1&v=%s", videoId)
+
+	return &events.APIGatewayProxyResponse{
+		StatusCode: 302,
+		Headers: map[string]string{
+			"Location": videoPath,
+		},
+	}, nil
+}
+
 func main() {
-	r := gin.Default()
-	r.GET("/:channelId", func(c *gin.Context) {
-		channelId := c.Param("channelId")
-		livePath := fmt.Sprintf("https://www.youtube.com/channel/%s/live", channelId)
-		res, err := http.Get(livePath)
-		if err != nil {
-			c.JSON(400, failure{Error: err.Error()})
-			return
-		}
-		body, err := ioutil.ReadAll(res.Body)
-		if err != nil {
-			c.JSON(400, failure{Error: err.Error()})
-			return
-		}
-		matches := videoIdRegex.FindStringSubmatch(string(body))
-		if len(matches) == 0 {
-			c.JSON(400, failure{Error: "No live stream found"})
-			return
-		}
-		videoId := videoIdRegex.FindStringSubmatch(string(body))[1]
-		videoPath := fmt.Sprintf("https://www.youtube.com/live_chat?is_popout=1&v=%s", videoId)
-		c.Redirect(302, videoPath)
-	})
-	r.Run(":3799")
+	lambda.Start(handler)
 }
