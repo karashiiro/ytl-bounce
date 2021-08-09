@@ -30,7 +30,7 @@ func jsonFailure(message string) events.APIGatewayProxyResponse {
 }
 
 func handler(request events.APIGatewayProxyRequest) (*events.APIGatewayProxyResponse, error) {
-	channelId, ok := request.PathParameters["channelId"]
+	channelId, ok := request.QueryStringParameters["c"]
 	if !ok {
 		fail := jsonFailure("Failed to get channel ID from request")
 		return &fail, nil

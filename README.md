@@ -6,7 +6,5 @@ This lets you avoid pasting a new YouTube Live link into OBS during each stream.
 [![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/karashiiro/ytl-bounce)
 
 ## Usage
-With the program running, set the browser widget URL to `http://localhost:3799/ChannelID`, replacing `ChannelID` with your
+Set your browser widget URL to `https://yoururl.netlify.app/.netlify/functions/bounce?c=ChannelID`, replacing `ChannelID` with your
 own channel's ID.
-
-TODO: Netlify support
