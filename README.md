@@ -1,5 +1,5 @@
 # ytl-bounce
-A small application that redirects a YouTube link with a channel ID to the popout chat for a live stream on that channel.
+A small application that redirects a link with a YouTube channel ID to the popout chat for a live stream on that channel.
 This lets you avoid pasting a new YouTube Live link into OBS during each stream.
 
 ## Setup
