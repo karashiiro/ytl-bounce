@@ -2,6 +2,8 @@
 A small application that redirects a link with a YouTube channel ID to the popout chat for a live stream on that channel.
 This lets you avoid pasting a new YouTube Live link into OBS during each stream.
 
+*Note: This does not seem to work with customized channel IDs. The original channel ID must be used.*
+
 ## Setup
 Click the deploy button below to deploy this application on your own Netlify site.
 
